@@ -1,0 +1,88 @@
+version: "3.4"
+
+x-stack_env_backend_template: &stack_env_backend
+  TZ: Asia/Ho_Chi_Minh
+  FILE_PATH: files
+  NEXT_PUBLIC_WORDPRESS_URL: ${NEXT_PUBLIC_WORDPRESS_URL}
+  FAUST_SECRET_KEY: ${FAUST_SECRET_KEY}
+  NEXT_PUBLIC_SITE_URL: https://${DOMAIN}
+  NEXT_PUBLIC_SITE_DIRECTION: "ltr"
+  NEXT_PUBLIC_SITE_GEAR_ICON: "true"
+  NODE_ENV: production
+
+services:
+  nextjs:
+    image: "${REGISTRY}/${IMG_NEXTJS}"
+    environment: *stack_env_backend
+    networks:
+      - traefik-private
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.${STACK}_nextjs-http.rule=Host(`${DOMAIN_NEXTJS}`)
+        - traefik.http.routers.${STACK}_nextjs-http.entrypoints=http
+        - traefik.http.routers.${STACK}_nextjs-http.middlewares=https-redirect
+        - traefik.http.routers.${STACK}_nextjs-https.rule=Host(`${DOMAIN_NEXTJS}`)
+        - traefik.http.routers.${STACK}_nextjs-https.entrypoints=https
+        - traefik.http.routers.${STACK}_nextjs-https.tls=true
+        - traefik.http.routers.${STACK}_nextjs-https.tls.certresolver=le
+        - traefik.http.services.${STACK}_nextjs.loadbalancer.server.port=80
+  wordpress:
+    image: wordpress:6.3.1
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: database
+      WORDPRESS_DB_USER: admin
+      WORDPRESS_DB_PASSWORD: Password@123
+      WORDPRESS_DB_NAME: huunghiaish
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - traefik-private
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.${STACK}_wordpress-http.rule=Host(`${DOMAIN_WORDPRESS}`)
+        - traefik.http.routers.${STACK}_wordpress-http.entrypoints=http
+        - traefik.http.routers.${STACK}_wordpress-http.middlewares=https-redirect
+        - traefik.http.routers.${STACK}_wordpress-https.rule=Host(`${DOMAIN_WORDPRESS}`)
+        - traefik.http.routers.${STACK}_wordpress-https.entrypoints=https
+        - traefik.http.routers.${STACK}_wordpress-https.tls=true
+        - traefik.http.routers.${STACK}_wordpress-https.tls.certresolver=le
+        - traefik.http.services.${STACK}_wordpress.loadbalancer.server.port=80
+  database:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: huunghiaish
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: Password@123
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - database:/var/lib/mysql
+    networks:
+      - traefik-private
+      - traefik-public
+networks:
+  traefik-private:
+    driver: overlay
+    attachable: true
+  traefik-public:
+    external: true
+
+volumes:
+  upload:
+  wordpress:
+  database:
