@@ -1,0 +1,65 @@
+version: '3.5'
+services:
+  prometheus:
+    networks:
+      - traefik-private
+      - traefik-public
+    image: prom/prometheus:v2.55.1
+    command: "--config.file=/etc/prometheus/prometheus.yaml"
+    volumes:
+      - /etc/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus_data:/prometheus
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        # - traefik.http.routers.${STACK}_prometheus-http.rule=Host(`${PROMETHEUS_DOMAIN}`)
+        # - traefik.http.routers.${STACK}_prometheus-http.entrypoints=http
+        - traefik.http.routers.${STACK}_prometheus-https.rule=Host(`${PROMETHEUS_DOMAIN}`)
+        - traefik.http.routers.${STACK}_prometheus-https.entrypoints=https
+        - traefik.http.routers.${STACK}_prometheus-https.tls=true
+        - traefik.http.routers.${STACK}_prometheus-https.tls.certresolver=le
+        - traefik.http.services.${STACK}_prometheus.loadbalancer.server.port=9090
+    restart: unless-stopped
+  grafana:
+    networks:
+      - traefik-private
+      - traefik-public
+    image: grafana/grafana-oss:11.3.0
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=sunny123qwe!@#
+      - GF_SERVER_ROOT_URL=https://${GRAFANA_DOMAIN}/
+      - GF_SERVER_DOMAIN=${GRAFANA_DOMAIN}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        # - traefik.http.routers.${STACK}_grafana-http.rule=Host(`${GRAFANA_DOMAIN}`)
+        # - traefik.http.routers.${STACK}_grafana-http.entrypoints=http
+        - traefik.http.routers.${STACK}_grafana-https.rule=Host(`${GRAFANA_DOMAIN}`)
+        - traefik.http.routers.${STACK}_grafana-https.entrypoints=https
+        - traefik.http.routers.${STACK}_grafana-https.tls=true
+        - traefik.http.routers.${STACK}_grafana-https.tls.certresolver=le
+        - traefik.http.services.${STACK}_grafana.loadbalancer.server.port=3000
+
+networks:
+  traefik-private:
+    driver: overlay
+    attachable: true
+  traefik-public:
+    external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:
