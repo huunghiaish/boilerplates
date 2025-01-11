@@ -2,10 +2,10 @@
 
 # === Configuration ===
 STACK_NAME="port.t.huunghiaish.com" # MODIFY HERE
-BACKUP_DIR="/home/deploy/backupserver/dumpstack"
+BACKUP_DIR="/home/deploy/dumpstack"
 PROMETHEUS_DIR="/etc/prometheus"
 RCLONE_REMOTE="gdrive"
-RCLONE_PATH="${RCLONE_REMOTE}:/backupserver/stacks/${STACK_NAME}"
+RCLONE_PATH="${RCLONE_REMOTE}:/dumpstack/${STACK_NAME}"
 PORTAINER_URL="https://${STACK_NAME}/api"
 USERNAME="admin"
 PASSWORD="Password@123"

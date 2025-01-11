@@ -5,7 +5,7 @@ VOLUME_NAME="port.t.huunghiaish.com" # MODIFY HERE
 BACKUP_DIR="/var/lib/docker/volumes"
 PROMETHEUS_DIR="/etc/prometheus"
 RCLONE_REMOTE="gdrive"
-RCLONE_PATH="${RCLONE_REMOTE}:/backupserver/volumes/${VOLUME_NAME}"
+RCLONE_PATH="${RCLONE_REMOTE}:/backupserver/dumpvolume/${VOLUME_NAME}"
 
 # === Functions ===
 sync_to_drive() {

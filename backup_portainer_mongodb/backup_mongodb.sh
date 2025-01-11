@@ -3,10 +3,10 @@
 # === Configuration ===
 DB_HOST="127.0.0.1:27017" # MODIFY HERE
 DB_NAME="HuuNghiaIsh" # MODIFY HERE
-BACKUP_DIR="/home/deploy/backupserver/mongodb"
+BACKUP_DIR="/home/deploy/dumpmongo"
 PROMETHEUS_DIR="/etc/prometheus"
 RCLONE_REMOTE="gdrive"
-RCLONE_PATH="${RCLONE_REMOTE}:/backupserver/mongodb/${DB_NAME}"
+RCLONE_PATH="${RCLONE_REMOTE}:/dumpmongo/${DB_NAME}"
 
 # === Functions ===
 dump_mongodb() {
