@@ -1,0 +1,38 @@
+version: '3.5'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    networks:
+      - traefik-public
+    environment:
+      - DB_SQLITE_FILE=/home/node/.n8n/database.sqlite
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin  # Change to your desired username
+      - N8N_BASIC_AUTH_PASSWORD=Password@123  # Change to your desired password
+      - N8N_HOST=${DOMAIN}  # Set your domain here
+      - N8N_PORT=5678
+      - WEBHOOK_URL=https://${DOMAIN}/
+    volumes:
+      - n8n-data:/home/node/.n8n
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.${STACK}_n8n-https.rule=Host(`${DOMAIN}`)
+        - traefik.http.routers.${STACK}_n8n-https.entrypoints=https
+        - traefik.http.routers.${STACK}_n8n-https.tls=true
+        - traefik.http.routers.${STACK}_n8n-https.tls.certresolver=le
+        - traefik.http.services.${STACK}_n8n.loadbalancer.server.port=5678
+
+networks:
+  traefik-public:
+    external: true
+
+volumes:
+  n8n-data:
+    external: true
